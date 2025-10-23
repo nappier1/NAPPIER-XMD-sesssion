@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAPPIER-XMD Pairing Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --gradient: linear-gradient(135deg, #00d4ff, #7e00ff);
+      --bg: #050010;
+      --glass: rgba(255, 255, 255, 0.05);
+      --text: #ffffff;
+      --muted: #bbbbbb;
+      --highlight: #00f6ff;
+      --radius: 18px;
+      --blur: 15px;
+      --glow: 0 0 18px rgba(0, 246, 255, 0.4);
+      --transition: all 0.35s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 100px 20px;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Background animation */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 20% 30%, rgba(0,255,255,0.15), transparent 40%),
+                  radial-gradient(circle at 80% 70%, rgba(140,0,255,0.2), transparent 40%);
+      animation: pulse 10s infinite alternate;
+      z-index: -1;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to   { transform: scale(1.1); }
+    }
+
+    /* Header */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.8rem 1.5rem;
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      z-index: 100;
+    }
+    .logo-container { display: flex; align-items: center; gap: 0.8rem; }
+    .logo-img {
+      height: 42px; width: 42px; border-radius: 50%;
+      border: 2px solid rgba(0,246,255,0.4);
+      box-shadow: var(--glow);
+    }
+    .logo-text {
+      font-size: 1.4rem; font-weight: 700;
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    /* Battery */
+    .battery-container {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 1rem; border-radius: 50px;
+      background: rgba(0,0,0,0.3); font-size: 0.9rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .battery-icon { color: var(--highlight); }
+
+    /* Card */
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      margin-top: 2rem;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: var(--transition);
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: var(--glow); }
+
+    .card h2 {
+      font-size: 1.8rem; margin-bottom: 0.8rem;
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .card h5 { color: var(--muted); font-weight: normal; margin-bottom: 1rem; }
+
+    /* Input */
+    .input-container {
+      display: flex; gap: 0.6rem; margin-top: 1rem; flex-wrap: wrap;
+    }
+    .input-container input {
+      flex: 1; padding: 0.9rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(0,0,0,0.4);
+      color: var(--text); font-size: 1rem;
+    }
+    .input-container button {
+      padding: 0.9rem 1.5rem;
+      border-radius: var(--radius);
+      border: none; background: var(--gradient);
+      color: white; font-weight: 600; cursor: pointer;
+      transition: var(--transition);
+    }
+    .input-container button:hover { transform: scale(1.05); }
+
+    /* Pairing result */
+    #pair-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.4);
+      min-height: 55px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    #copy-code {
+      display: none; margin-top: 1rem;
+      border: 1px solid var(--highlight);
+      padding: 0.6rem 1.2rem;
+      border-radius: 50px;
+      background: transparent; color: var(--highlight);
+      font-weight: 600; cursor: pointer;
+      transition: var(--transition);
+    }
+    #copy-code:hover { background: rgba(0,246,255,0.15); }
+
+    /* Music Player */
+    .music-player {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      border-radius: var(--radius);
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+    }
+    .music-title { font-size: 1.2rem; font-weight: bold; margin: 0.3rem 0; }
+    .music-subtitle { color: var(--muted); font-size: 0.9rem; }
+
+    .play-btn {
+      margin: 1rem auto;
+      width: 55px; height: 55px;
+      border-radius: 50%; border: none;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: var(--transition);
+    }
+    .play-btn i { color: #fff; font-size: 1.5rem; }
+    .play-btn:hover { transform: scale(1.1); }
+
+    .time-display { font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; }
+
+    /* Responsive */
+    @media(max-width:600px) {
+      .input-container { flex-direction: column; }
+      .input-container button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="logo-container">
+      <img src="https://files.catbox.moe/vcdwmp.jpg" class="logo-img">
+      <div class="logo-text">NAPPIER-XMD</div>
+    </div>
+    <div class="battery-container">
+      <i class="fas fa-battery-full battery-icon" id="battery-icon"></i>
+      <span id="battery-level">--%</span>
+    </div>
+  </header>
+
+  <!-- Pairing Code Card -->
+  <div class="card">
+    <h2>PAIRING CODE</h2>
+    <h5>Best WhatsApp Bot made by Kathara "napkid"</h5>
+    <p>Enter your number with country code:</p>
+
+    <div class="input-container">
+      <input type="number" id="number" placeholder="2547********" required>
+      <button id="submit">SUBMIT</button>
+    </div>
+
+    <div id="pair-result"><p id="waiting-message" style="display:none;">Please wait...</p></div>
+    <button id="copy-code" onclick="copyCode()">COPY CODE</button>
+  </div>
+
+  <!-- Music Player -->
+  <div class="music-player">
+    <div class="music-title">NAPPIER-XMD</div>
+    <div class="music-subtitle">Vibes</div>
+    <button class="play-btn" onclick="togglePlay()">
+      <i class="fas fa-pause" id="play-icon"></i>
+    </button>
+    <div class="time-display" id="time1">0:00</div>
+    <div class="music-subtitle">Now Playing: pussy</div>
+    <audio id="audio1" src="https://files.catbox.moe/sid63m.mp3" loop></audio>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+<script>
+  const pairResult = document.getElementById("pair-result");
+  const submitBtn = document.getElementById("submit");
+  const numberInput = document.getElementById("number");
+  const copyCodeBtn = document.getElementById("copy-code");
+  const waitingMessage = document.getElementById("waiting-message");
+
+  // Copy code
+  async function copyCode() {
+    const code = pairResult.innerText.replace('CODE: ', '');
+    try {
+      await navigator.clipboard.writeText(code);
+      copyCodeBtn.innerText = "COPIED!";
+      setTimeout(()=> copyCodeBtn.innerText="COPY CODE",1500);
+    } catch(err){ console.error(err); }
+  }
+
+  // Submit handler
+  submitBtn.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    if(!numberInput.value){ pairResult.innerHTML='<p style="color:var(--highlight)">Enter your WhatsApp number</p>'; return;}
+    const cleanNumber = numberInput.value.replace(/[^0-9]/g,"");
+    if(cleanNumber.length<11){ pairResult.innerHTML='<p style="color:#ff5555">Invalid Number</p>'; return;}
+    waitingMessage.style.display="block"; pairResult.innerHTML=""; copyCodeBtn.style.display="none";
+
+    try{
+      const {data}=await axios(`/code?number=${cleanNumber}`);
+      const code=data.code||"Unavailable";
+      pairResult.innerHTML=`<p style="color:var(--highlight);font-weight:bold;">CODE: <span style="color:white">${code}</span></p>`;
+      copyCodeBtn.style.display="inline-block"; waitingMessage.style.display="none";
+    }catch{ pairResult.innerHTML='<p style="color:#ff5555">Error getting code</p>'; waitingMessage.style.display="none"; }
+  });
+
+  // Music Player
+  const audio=document.getElementById('audio1');
+  const playIcon=document.getElementById('play-icon');
+  const timeDisplay=document.getElementById('time1');
+
+  document.addEventListener('click',function initAudio(){
+    audio.play().catch(()=>{});
+    document.removeEventListener('click',initAudio);
+  },{once:true});
+
+  function togglePlay(){
+    if(audio.paused){audio.play(); playIcon.className="fas fa-pause";}
+    else{audio.pause(); playIcon.className="fas fa-play";}
+  }
+  audio.addEventListener('timeupdate',()=>{
+    const m=Math.floor(audio.currentTime/60), s=Math.floor(audio.currentTime%60);
+    timeDisplay.textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  });
+
+  // Battery
+  const batteryLevel=document.getElementById("battery-level"), batteryIcon=document.getElementById("battery-icon");
+  if(navigator.getBattery){ navigator.getBattery().then(b=>{
+    function updateUI(){
+      const pct=Math.round(b.level*100); batteryLevel.textContent=`${pct}%`;
+      let icon='fa-battery-quarter';
+      if(pct>80) icon='fa-battery-full'; else if(pct>60) icon='fa-battery-three-quarters';
+      else if(pct>40) icon='fa-battery-half';
+      batteryIcon.className=`fas ${icon}`; batteryIcon.style.color=b.charging?'#00ff00':'var(--highlight)';
+    }
+    updateUI(); b.addEventListener('levelchange',updateUI); b.addEventListener('chargingchange',updateUI);
+  });}
+</script>
+</body>
+</html>

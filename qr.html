@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAPPIER-XMD PRO | Advanced QR Code Reader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --secondary-gradient: linear-gradient(135deg, #43cea2 0%, #185a9d 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --dark-text: #1e293b;
+            --medium-text: #475569;
+            --light-text: #64748b;
+            --light-bg: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--dark-text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            padding: 35px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary-gradient);
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+        }
+
+        .logo-icon i {
+            color: white;
+            font-size: 22px;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .tagline {
+            color: var(--light-text);
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .qr-container {
+            margin: 25px 0;
+            padding: 25px;
+            background: var(--light-bg);
+            border-radius: 18px;
+            border: 2px dashed var(--border-color);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .qr-container.scanning {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .qr-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-image:hover {
+            transform: scale(1.02);
+        }
+
+        .scan-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--success-color);
+            transform: translateX(-100%);
+            border-radius: 5px;
+        }
+
+        .scanning .scan-animation {
+            animation: scan 2s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .status {
+            margin-top: 20px;
+        }
+
+        .status-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-text);
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 12px;
+            height: 10px;
+            margin: 18px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-gradient);
+            border-radius: 12px;
+            width: 0%;
+            transition: width 1s linear;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 50px 50px;
+            animation: move 2s linear infinite;
+            overflow: hidden;
+        }
+
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        .timer {
+            font-size: 15px;
+            color: var(--light-text);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .timer i {
+            font-size: 16px;
+        }
+
+        .expired-message {
+            color: var(--error-color);
+            font-weight: 600;
+            margin: 20px 0;
+            padding: 18px;
+            background: #fef2f2;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-left: 4px solid var(--error-color);
+        }
+
+        .expired-message i {
+            font-size: 20px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 12px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(106, 17, 203, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--medium-text);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+        }
+
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: var(--light-bg);
+            border-radius: 14px;
+            text-align: left;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .instructions h3 {
+            font-size: 16px;
+            color: var(--dark-text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .instructions h3 i {
+            color: var(--success-color);
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+            font-size: 14px;
+            color: var(--medium-text);
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--light-bg);
+            border-radius: 10px;
+            font-size: 13px;
+            color: var(--medium-text);
+        }
+
+        .feature i {
+            color: var(--success-color);
+            font-size: 16px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification i {
+            font-size: 20px;
+            color: var(--success-color);
+        }
+
+        .notification-content h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+            color: var(--dark-text);
+        }
+
+        .notification-content p {
+            font-size: 13px;
+            color: var(--medium-text);
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 25px 20px;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: none;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="logo-text">NAPPIER-XMD PRO</div>
+                </div>
+                <div class="tagline">Enterprise-grade QR code scanning solution</div>
+            </div>
+            
+            <div class="qr-container" id="qr-container">
+                <div class="scan-animation"></div>
+                <img src="/server" alt="QR Code" class="qr-image" id="qr-image">
+            </div>
+            
+            <div class="status">
+                <div class="status-text" id="status-text">Ready to scan - Point your camera at the QR code</div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <div class="timer">
+                    <i class="far fa-clock"></i>
+                    <span id="timer">Time remaining: 30 seconds</span>
+                </div>
+            </div>
+            
+            <div class="expired-message" id="expired-message">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>QR code has expired. Please generate a new one.</span>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-primary" id="reload-btn" onclick="refreshPage()">
+                    <i class="fas fa-sync-alt"></i> Generate New QR
+                </button>
+                <button class="btn btn-secondary" id="help-btn">
+                    <i class="fas fa-question-circle"></i> Help
+                </button>
+            </div>
+
+            <div class="features">
+                <div class="feature">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure & Encrypted</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-bolt"></i>
+                    <span>Instant Processing</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Mobile Optimized</span>
+                </div>
+                <div class="feature">
+                    <i class="fas fa-history"></i>
+                    <span>Auto Refresh</span>
+                </div>
+            </div>
+            
+            <div class="instructions">
+                <h3><i class="fas fa-info-circle"></i> How to use Teddy-Xmd Pro:</h3>
+                <ol>
+                    <li>Open your phone's camera or QR scanner app</li>
+                    <li>Point your camera at the QR code above</li>
+                    <li>Wait for the app to recognize and process the code</li>
+                    <li>Follow the instructions on your device</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <div class="notification-content">
+            <h4>QR Code Generated</h4>
+            <p>New code is ready for scanning</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBar = document.getElementById('progress-bar');
+            const timerElement = document.getElementById('timer');
+            const statusText = document.getElementById('status-text');
+            const expiredMessage = document.getElementById('expired-message');
+            const reloadBtn = document.getElementById('reload-btn');
+            const helpBtn = document.getElementById('help-btn');
+            const qrContainer = document.getElementById('qr-container');
+            const notification = document.getElementById('notification');
+            
+            let timeLeft = 30;
+            let progressInterval;
+            
+            function startTimer() {
+                clearInterval(progressInterval);
+                timeLeft = 30;
+                progressBar.style.width = '0%';
+                statusText.textContent = 'Ready to scan - Point your camera at the QR code';
+                statusText.style.color = '';
+                expiredMessage.style.display = 'none';
+                qrContainer.classList.remove('scanning');
+                
+                // Show notification
+                showNotification();
+                
+                progressInterval = setInterval(function() {
+                    timeLeft--;
+                    const progress = ((30 - timeLeft) / 30) * 100;
+                    progressBar.style.width = `${progress}%`;
+                    timerElement.innerHTML = `<i class="far fa-clock"></i> Time remaining: ${timeLeft} seconds`;
+                    
+                    if (timeLeft <= 10 && timeLeft > 0) {
+                        statusText.textContent = 'Hurry! QR code expiring soon';
+                        statusText.style.color = 'var(--warning-color)';
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(progressInterval);
+                        statusText.textContent = 'QR code expired';
+                        statusText.style.color = 'var(--error-color)';
+                        expiredMessage.style.display = 'flex';
+                        qrContainer.classList.remove('scanning');
+                    }
+                }, 1000);
+            }
+            
+            function showNotification() {
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+            
+            function simulateScan() {
+                // In a real app, this would be triggered by an actual scan
+                // For demo purposes, we'll simulate a scan after a random time
+                const scanTime = Math.floor(Math.random() * 20000) + 5000; // Between 5-25 seconds
+                
+                setTimeout(() => {
+                    if (timeLeft > 0) {
+                        qrContainer.classList.add('scanning');
+                        statusText.textContent = 'Scanning in progress...';
+                        statusText.style.color = 'var(--success-color)';
+                        
+                        // Simulate processing time
+                        setTimeout(() => {
+                            qrContainer.classList.remove('scanning');
+                            statusText.textContent = 'Scan successful! Processing...';
+                            
+                            // Simulate final processing
+                            setTimeout(() => {
+                                statusText.textContent = 'Authentication complete!';
+                                clearInterval(progressInterval);
+                                progressBar.style.width = '100%';
+                                progressBar.style.background = 'var(--success-color)';
+                                timerElement.innerHTML = '<i class="fas fa-check-circle"></i> Scan completed successfully';
+                            }, 1500);
+                        }, 2000);
+                    }
+                }, scanTime);
+            }
+            
+            // Start the timer when page loads
+            startTimer();
+            simulateScan();
+            
+            // Help button functionality
+            helpBtn.addEventListener('click', function() {
+                alert('Nappier-Xmd Pro Help:\n\n• Ensure good lighting when scanning\n• Hold your device steady for 2-3 seconds\n• Make sure the entire QR code is visible\n• If problems persist, try generating a new code\n\nFor enterprise support, contact: https://shosho-five.vercel.app/');
+            });
+        });
+
+        // Function to refresh the page
+        function refreshPage() {
+            location.reload();
+        }
+    </script>
+</body>
+</html>
