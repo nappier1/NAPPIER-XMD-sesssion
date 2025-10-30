@@ -1,101 +1,140 @@
-const PastebinAPI = require('pastebin-js'),
-pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL')
-const {makeid} = require('./id');
+const PastebinAPI = require('pastebin-js');
+const pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL');
+const { makeid } = require('./id');
 const express = require('express');
 const fs = require('fs');
-let router = express.Router()
-const pino = require("pino");
+const pino = require('pino');
+
 const {
-    default: Dml_Tech,
-    useMultiFileAuthState,
-    delay,
-    makeCacheableSignalKeyStore,
-    Browsers
-} = require("@whiskeysockets/baileys");
+  default: Michal_Tech,
+  useMultiFileAuthState,
+  delay,
+  makeCacheableSignalKeyStore,
+  Browsers,
+} = require('@whiskeysockets/baileys');
 
-function removeFile(FilePath){
-    if(!fs.existsSync(FilePath)) return false;
-    fs.rmSync(FilePath, { recursive: true, force: true })
- };
+const router = express.Router();
+
+// 🧹 Helper — Remove temporary session folder
+function removeFile(filePath) {
+  if (fs.existsSync(filePath)) {
+    fs.rmSync(filePath, { recursive: true, force: true });
+  }
+}
+
+// ⚙️ Main Route — Generate Pairing Code
 router.get('/', async (req, res) => {
-    const id = makeid();
-    let num = req.query.number;
-        async function DML_TECH_PAIR_CODE() {
-        const {
-            state,
-            saveCreds
-        } = await useMultiFileAuthState('./temp/'+id)
-     try {
-            let Pair_Code_By_Dml_Tech = Dml_Tech({
-                auth: {
-                    creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({level: "fatal"}).child({level: "fatal"})),
-                },
-                printQRInTerminal: false,
-                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                browser: Browsers.macOS('Chrome')
-             });
-             if(!Pair_Code_By_Dml_Tech.authState.creds.registered) {
-                await delay(1500);
-                        num = num.replace(/[^0-9]/g,'');
-                            const code = await Pair_Code_By_Dml_Tech.requestPairingCode(num)
-                 if(!res.headersSent){
-                 await res.send({code});
-                     }
-                 }
-            Pair_Code_By_Dml_Tech.ev.on('creds.update', saveCreds)
-            Pair_Code_By_Dml_Tech.ev.on("connection.update", async (s) => {
-                const {
-                    connection,
-                    lastDisconnect
-                } = s;
-                if (connection == "open") {
-                await delay(50000);
-                let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
-                await delay(8000);
-               let b64data = Buffer.from(data).toString('base64');
-               let session = await Pair_Code_By_Dml_Tech.sendMessage(Pair_Code_By_Dml_Tech.user.id, { text: 'NAPPIER-XMD~'+ b64data });
+  const id = makeid();
+  const num = req.query.number;
 
-               let DML_TECH_TEXT = ` YOUR SESSION IS SUCCESSFULLY GENERATED L! ✅ ✨
+  if (!num) {
+    return res.status(400).send({ error: 'Number parameter is required!' });
+  }
 
-💪 Empowering Your Experience with kathara scripts 
+  async function NAPPIER_XMD_PAIR_CODE() {
+    const { state, saveCreds } = await useMultiFileAuthState(`./temp/${id}`);
 
-👥 Connect & Chat with Friends
-👉 Join Free https://whatsapp.com/channel/0029Vb6NveDBPzjPa4
+    try {
+      const Nappier = Michal_Tech({
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(
+            state.keys,
+            pino({ level: 'fatal' }).child({ level: 'fatal' })
+          ),
+        },
+        printQRInTerminal: false,
+        logger: pino({ level: 'fatal' }).child({ level: 'fatal' }),
+        browser: Browsers.macOS('Chrome'),
+      });
 
-🌟 Support Our Work
-⭐ Give our repo a star & follow the developer here ⤵
-🔗 GitHub – https://github.com/Nappier1
+      // ⚡ Request Pairing Code
+      if (!Nappier.authState.creds.registered) {
+        await delay(1500);
+        const cleanNum = num.replace(/[^0-9]/g, '');
+        const code = await Nappier.requestPairingCode(cleanNum);
 
-💭 Need Help or Updates?
-📢 Join our official support channel:
-WhatsApp Channel
-
-📚 Learn & Explore with Tutorials
-🪄 Check out our YouTube channel:
-https://www.youtube.com/@napkis
-
-🚀 Powered by kathara curiosity — Together, we build the future of automation! 🚀
-`
- await Pair_Code_By_Dml_Tech.sendMessage(Pair_Code_By_Dml_Tech.user.id,{text:DML_TECH_TEXT},{quoted:session})
- 
-
-        await delay(100);
-        await Pair_Code_By_Dml_Tech.ws.close();
-        return await removeFile('./temp/'+id);
-            } else if (connection === "close" && lastDisconnect && lastDisconnect.error && lastDisconnect.error.output.statusCode != 401) {
-                    await delay(10000);
-                    DML_TECH_PAIR_CODE();
-                }
-            });
-        } catch (err) {
-            console.log("service restated");
-            await removeFile('./temp/'+id);
-         if(!res.headersSent){
-            await res.send({code:"Service is Currently Unavailable"});
-         }
+        if (!res.headersSent) {
+          res.send({ code });
         }
+      }
+
+      // Save credentials
+      Nappier.ev.on('creds.update', saveCreds);
+
+      // 🧠 Connection Event
+      Nappier.ev.on('connection.update', async (update) => {
+        const { connection, lastDisconnect } = update;
+
+        if (connection === 'open') {
+          await delay(5000);
+
+          const filePath = `${__dirname}/temp/${id}/creds.json`;
+          if (!fs.existsSync(filePath)) {
+            console.error('❌ Credentials file missing:', filePath);
+            return;
+          }
+
+          // Encode creds file to base64
+          const data = fs.readFileSync(filePath);
+          const base64Data = Buffer.from(data).toString('base64');
+          const sessionMsg = await Nappier.sendMessage(Nappier.user.id, {
+            text: 'NAPPIER-XMD~' + base64Data,
+          });
+
+          // 📩 Informational message
+          const infoText = `
+✅ *YOUR SESSION IS READY!*
+✨ Powered by *NAPPIER-XMD*
+
+💪 Empowering your experience with Kathara scripts.
+
+👥 Connect & Chat:
+👉 [Join Free](https://whatsapp.com/channel/0029Vb6NveDBPzjPa4)
+
+⭐ *Support Our Work*:
+🔗 GitHub: https://github.com/Nappier1
+
+📢 *Get Help & Updates*:
+WhatsApp Channel: [Click Here](https://whatsapp.com/channel/0029Vb6NveDBPzjPa4)
+
+🎥 Tutorials:
+YouTube: https://www.youtube.com/@napkis
+
+🚀 Designed & Developed by Kathara (NapKid)
+          `;
+
+          await Nappier.sendMessage(
+            Nappier.user.id,
+            { text: infoText },
+            { quoted: sessionMsg }
+          );
+
+          await delay(500);
+          await Nappier.ws.close();
+          removeFile(`./temp/${id}`);
+        } else if (
+          connection === 'close' &&
+          lastDisconnect &&
+          lastDisconnect.error &&
+          lastDisconnect.error.output?.statusCode !== 401
+        ) {
+          console.log('🔄 Connection closed. Retrying...');
+          await delay(10000);
+          NAPPIER_XMD_PAIR_CODE();
+        }
+      });
+    } catch (err) {
+      console.error('⚠️ Service restarted due to error:', err);
+      removeFile(`./temp/${id}`);
+
+      if (!res.headersSent) {
+        res.send({ code: 'Service is currently unavailable' });
+      }
     }
-    return await DML_TECH_PAIR_CODE()
+  }
+
+  await NAPPIER_XMD_PAIR_CODE();
 });
-module.exports = router
+
+module.exports = router;
